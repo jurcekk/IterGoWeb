@@ -1,23 +1,18 @@
 import Home from './pages/Home';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
-// import List from './pages/list/List';
-// import Single from './pages/single/Single';
-// import New from './pages/new/New';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import React, { useContext } from 'react';
 import { AuthContext } from './context/AuthContext';
 import Profile from './pages/Profile';
+import UsersList from './pages/UsersList';
+import Navigation from './navigation/Navigation';
+import AddNewDriver from './pages/AddNewDriver';
 
 function App() {
   const { currentUser } = useContext(AuthContext);
-  console.log(currentUser);
   const RequireAuth = ({ children }) => {
     return currentUser !== null ? children : <Navigate to='/login' />;
-  };
-
-  const RequireAdmin = ({ children }) => {
-    return currentUser.role === 'admin' ? children : <Navigate to='/' />;
   };
 
   return (
@@ -31,43 +26,44 @@ function App() {
             index
             element={
               <RequireAuth>
-                <Home />
+                <Navigation>
+                  <Home />
+                </Navigation>
               </RequireAuth>
             }
           />
           <Route path='users'>
-            <Route index element={<RequireAuth>{<Profile />}</RequireAuth>} />
             <Route
-              path=':userId'
-              element={
-                <RequireAdmin>
-                  <RequireAuth>{/* <Single /> */}</RequireAuth>
-                </RequireAdmin>
-              }
-            />
-            <Route
-              path='new'
+              index
               element={
                 <RequireAuth>
-                  {/* <New inputs={userInputs} title='Add New User' /> */}
+                  <Navigation>
+                    <Profile />
+                  </Navigation>
                 </RequireAuth>
               }
             />
-          </Route>
-          <Route path='products'>
             <Route
-              index
-              element={<RequireAuth>{/* <List /> */}</RequireAuth>}
+              path=':userId'
+              element={<RequireAuth>{/* <Single /> */}</RequireAuth>}
             />
             <Route
-              path=':productId'
-              element={<RequireAuth>{/* <Single /> */}</RequireAuth>}
+              path='list'
+              element={
+                <RequireAuth>
+                  <Navigation>
+                    <UsersList />
+                  </Navigation>
+                </RequireAuth>
+              }
             />
             <Route
               path='new'
               element={
                 <RequireAuth>
-                  {/* <New inputs={productInputs} title='Add New Product' /> */}
+                  <Navigation>
+                    <AddNewDriver />
+                  </Navigation>
                 </RequireAuth>
               }
             />

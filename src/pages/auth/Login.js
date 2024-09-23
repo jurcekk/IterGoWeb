@@ -1,37 +1,49 @@
 import React from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { FIREBASE_AUTH } from '../../firebaseConfig';
+import { FIREBASE_AUTH, FIREBASE_DB } from '../../firebaseConfig';
 import { Flex, Row, Col, Button, Form, Input, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
+import { get, ref } from 'firebase/database';
 
 const Login = () => {
   const [messageApi, contextHolder] = message.useMessage();
 
   const navigate = useNavigate();
   const auth = FIREBASE_AUTH;
+  const db = FIREBASE_DB;
 
   const { dispatch } = useContext(AuthContext);
 
   const onFinish = (values) => {
-    console.log('Success:', values);
     signInWithEmailAndPassword(auth, values.email, values.password)
-      .then((userCredential) => {
+      .then(async (userCredential) => {
         const user = userCredential.user;
-        dispatch({ type: 'LOGIN', payload: user });
+
+        const userData = await get(ref(db, `users/${user.uid}`));
+        if (
+          (userData.val().role !== 'admin' && userData.val().role !== 'taxi') ||
+          userData.val().status === 'pending'
+        ) {
+          messageApi.open({
+            content: 'Nemate pristup',
+            type: 'error',
+            duration: 2,
+          });
+          return;
+        }
+
+        dispatch({ type: 'LOGIN', payload: userData.val() });
         navigate('/');
       })
       .catch((error) => {
-        const errorCode = error.code;
         const errorMessage = error.message;
-        console.log(errorCode, errorMessage);
         displayMess(errorMessage);
       });
   };
 
   const onFinishFailed = (errorInfo) => {
-    console.log('Failed:', errorInfo);
     messageApi.open({
       content: 'Molim Vas popunite sva polja',
       type: 'error',
